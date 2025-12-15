@@ -1,0 +1,158 @@
+<mujoco model="air_hockey">
+
+    <compiler angle="radian" coordinate="local"/>
+
+    <!-- Top-down abstraction: gravity, modest timestep -->
+    <option gravity="0 0 -9.81" timestep="0.01"/>
+
+    <default>
+        <geom 
+            friction="0.0001 0.00005 0.00001"
+            condim="4"
+            solref="0.002 1" 
+            solimp="0.95 0.99 0.001 0.5 2"
+        />
+    </default>
+
+
+    <worldbody>
+        <!-- Light and background floor -->
+        <light name="light" pos="0 0 3" dir="0 0 -1" directional="true"/>
+        <geom name="floor" type="plane" pos="0 0 0" size="0 0 0.1"
+              rgba="0.8 0.8 0.8 1"/>
+
+        <!-- Table surface: x in [-1,1], y in [-0.5,0.5] -->
+        <geom name="table" type="box"
+            pos="0 0 0.0"
+            size="0.75 1.0 0.02"
+            rgba="0.2 0.6 0.2 1"
+            contype="1" conaffinity="1"/>
+
+        <!-- Physical walls around the table -->
+        <!-- Side walls (along x edges), slightly longer than table in y -->
+        <geom name="wall_left"  type="box"
+            pos="-0.80 0 0.05"
+            size="0.05 1.05 0.05"
+            rgba="0.3 0.3 0.3 1"
+            contype="1" conaffinity="1"/>
+
+        <geom name="wall_right" type="box"
+            pos="0.80 0 0.05"
+            size="0.05 1.05 0.05"
+            rgba="0.3 0.3 0.3 1"
+            contype="1" conaffinity="1"/>
+
+        <!-- Top/bottom rails (along y edges), thinner toward the table center -->
+        <geom name="wall_top" type="box"
+            pos="0 1.05 0.05"
+            size="0.75 0.05 0.05"
+            rgba="0.3 0.3 0.3 1"
+            contype="1" conaffinity="1"/>
+
+        <geom name="wall_bottom" type="box"
+            pos="0 -1.05 0.05"
+            size="0.75 0.05 0.05"
+            rgba="0.3 0.3 0.3 1"
+            contype="1" conaffinity="1"/>
+        
+        <!-- Visual goal segments: 0.4 units wide, centered -->
+        <!-- <geom name="goal_top_vis" type="box"
+              pos="0 1.05 0.051"
+              size="0.2 0.05 0.051"
+              rgba="1 1 0 1"
+              contype="0" conaffinity="0"/>
+
+        <geom name="goal_bottom_vis" type="box"
+              pos="0 -1.05 0.051"
+              size="0.2 0.05 0.051"
+              rgba="1 1 0 1"
+              contype="0" conaffinity="0"/> -->
+
+
+        <!-- Y-position marker strips on the table -->
+        <!-- <body name="y_markers" pos="0 0 0">
+            <site name="y_-1_0"
+                pos="0 -1.0 0.021"
+                size="0.75 0.01 0.001"
+                type="box"
+                rgba="1 0 0 0.7"/>
+
+            <site name="y_-0.5"
+                pos="0 -0.5 0.021"
+                size="0.75 0.01 0.001"
+                type="box"
+                rgba="1 0.5 0 0.7"/>
+
+            <site name="y_0_0"
+                pos="0 0.0 0.021"
+                size="0.75 0.01 0.001"
+                type="box"
+                rgba="0 1 0 0.7"/>
+
+            <site name="y_0_5"
+                pos="0 0.5 0.021"
+                size="0.75 0.01 0.001"
+                type="box"
+                rgba="0 0.4 1 0.7"/>
+
+            <site name="y_1_0"
+                pos="0 1.0 0.021"
+                size="0.75 0.01 0.001"
+                type="box"
+                rgba="0.7 0 1 0.7"/>
+        </body> -->
+
+
+        <!-- Puck body with free joint -->
+        <body name="puck" pos="0 0 0.03">
+            <joint name="puck_free" type="free"/>
+            <geom name="puck_geom" type="cylinder"
+                  size="0.05 0.01"
+                  density="200"
+                  rgba="0.8 0.1 0.1 1"
+                  contype="1" conaffinity="1"/>
+            <!-- Reasonable inertia for small puck -->
+            <inertial pos="0 0 0" mass="0.02"
+                      diaginertia="2.5e-5 2.5e-5 5e-5"/>
+        </body>
+
+        <!-- Paddle body controlled via two slide joints (x,y) -->
+        <body name="paddle" pos="0 -0.8 0.03">
+            <joint name="paddle_slide_x" type="slide"
+                   axis="1 0 0"
+                   limited="true" range="-0.75 0.75"/>
+            <joint name="paddle_slide_y" type="slide"
+                   axis="0 1 0"
+                   limited="true" range="-1.0 1.0"/>
+            <geom name="paddle_geom" type="cylinder"
+                  size="0.07 0.01"
+                  density="400"
+                  rgba="0.1 0.1 0.8 1"
+                  contype="1" conaffinity="1"/>
+            <inertial pos="0 0 0" mass="0.05"
+                      diaginertia="2.5e-4 2.5e-4 5e-4"/>
+        </body>
+
+        <!-- Top-down camera for debugging / recordings -->
+        <camera
+            name="top"
+            pos="0 -3.0 2.0"
+            euler="35 0 0"
+            fovy="35"
+            mode="fixed"
+        />
+        <camera name="top_down" pos="0 0 2" zaxis="0 0 -1"/>
+        <camera name="diag" pos="0 -2 1" euler="45 0 0"/>
+
+
+
+
+    </worldbody>
+
+    <actuator>
+        <!-- Motors that your Python code already expects -->
+        <motor name="ax" joint="paddle_slide_x" gear="1.0"/>
+        <motor name="ay" joint="paddle_slide_y" gear="1.0"/>
+    </actuator>
+
+</mujoco>
