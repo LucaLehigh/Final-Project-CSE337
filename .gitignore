@@ -1,5 +1,9 @@
 venv/
 __pycache__/
+Gifs/
+Graph/
 *.pyc
 .DS_Store
 *.dylib
+*.png
+*.gif
